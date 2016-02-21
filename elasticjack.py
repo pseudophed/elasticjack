@@ -16,9 +16,6 @@ from elasticsearch import Elasticsearch
 - Jack **all** documents for **all** indexes
 '''
 
-#global stuff
-es = Elasticsearch('wa-elastic01:9200')
-
 def getElasticInfo(returnDict=False):
 
 	esInfo = es.info()
@@ -106,11 +103,35 @@ def getSpecificIndexInfo(index, hostname='wa-elastic01', port=9200, returnCount 
 	else:
 		print('Index: {}\nDocument Count: {}'.format(index, count))
 
+def getSpecificDocuments(index, numberOfDocs, hostname='wa-elastic01', port=9200, returnList=False):
+	
+	es = Elasticsearch('{}:{}'.format(hostname,port))
+	docList = []
+	
+	query = {
+		"query" : {
+			"match_all" : {}
+		},
+		"size" : numberOfDocs
+	}
+	
+	esResultDict = es.search(index=index, body=query)
+	for record in esResultDict['hits']['hits']:
+		docList.append(json.dumps(record['_source']))
+	
+	if returnList:
+		return docList
+	else:
+		for x in docList:
+			x = json.loads(x)
+			print(x)
+	
 def run():
 	
 	#getElasticInfo()
 	#getAllIndexes()
-	getSpecificIndexInfo(index='fail')
+	#getSpecificIndexInfo(index='fail')
+	getSpecificDocuments('ads_new', 3)
 	sys.exit(0)
 
 if __name__ == '__main__':	
